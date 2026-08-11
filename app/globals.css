@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+body {
+  @apply bg-yellow-50/30 text-zinc-900 dark:bg-black dark:text-zinc-100 transition-colors duration-200;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior: none; }
