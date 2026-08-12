@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
             </div>
           ) : !ready ? (
             <div className="text-center py-4">
-              <Loader2 size={24} className="animate-spin text-blue-600 mx-auto mb-2" />
+              <Loader2 size={24} className="animate-spin text-yellow-600 mx-auto mb-2" />
               <p className="text-gray-400 text-sm">Memverifikasi link reset...</p>
             </div>
           ) : (
