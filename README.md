@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ---
-
+🌐 **Live Demo:** [finsight-xxx.vercel.app](https://finsight-nu-seven.vercel.app/)
 ## 🌟 About
 
 FinSight is a web application for tracking daily income and expenses, complete with AI-powered financial analysis that delivers personalized saving tips in a friendly, conversational tone.
