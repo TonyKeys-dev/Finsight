@@ -27,6 +27,7 @@ export async function getTransactions(month?: string): Promise<Transaction[]> {
   const lastDay = new Date(year, mon, 0).getDate()
   const start = `${m}-01`
   const end = `${m}-${String(lastDay).padStart(2, '0')}`
+  
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
