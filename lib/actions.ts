@@ -23,9 +23,10 @@ export async function addTransaction(data: {
 export async function getTransactions(month?: string): Promise<Transaction[]> {
   const { data: { user } } = await supabase.auth.getUser()
   const m = month ?? getCurrentMonth()
+  const [year, mon] = m.split('-').map(Number)
+  const lastDay = new Date(year, mon, 0).getDate()
   const start = `${m}-01`
-  const end = `${m}-31`
-
+  const end = `${m}-${String(lastDay).padStart(2, '0')}`
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -54,8 +55,10 @@ export async function updateTransaction(id: string, data: Partial<Transaction>):
 export async function getMonthlySummary(month?: string): Promise<MonthlySummary> {
   const { data: { user } } = await supabase.auth.getUser()
   const m = month ?? getCurrentMonth()
+  const [year, mon] = m.split('-').map(Number)
+  const lastDay = new Date(year, mon, 0).getDate()
   const start = `${m}-01`
-  const end = `${m}-31`
+  const end = `${m}-${String(lastDay).padStart(2, '0')}`
 
   const { data } = await supabase
     .from('transactions')
