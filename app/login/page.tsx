@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn, signUp, getSession, resetPassword } from '@/lib/auth'
-import { Loader2, TrendingUp, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import Image from 'next/image'
 
 type Tab = 'login' | 'register' | 'forgot'
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('login')
   const [email, setEmail] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -28,6 +30,7 @@ export default function LoginPage() {
     setTab(t)
     setPassword('')   // clear password setiap ganti tab
     setConfirm('')
+    setDisplayName('')
     setError(null)
     setSuccess(null)
     setShowPass(false)
@@ -46,6 +49,7 @@ export default function LoginPage() {
 
     if (!email || !password) { setError('Email dan password wajib diisi.'); return }
     if (password.length < 6) { setError('Password minimal 6 karakter.'); return }
+    if (tab === 'register' && (displayName.trim().length < 2 || displayName.trim().length > 40)) { setError('Nama tampilan harus 2–40 karakter.'); return }
     if (tab === 'register' && password !== confirm) { setError('Password tidak cocok.'); return }
 
     setSubmitting(true); setError(null); setSuccess(null)
@@ -56,7 +60,7 @@ export default function LoginPage() {
       if (err) { setError('Email atau password salah.'); return }
       router.replace('/dashboard')
     } else {
-      const { error: err } = await signUp(email, password)
+      const { error: err } = await signUp(email, password, displayName.trim())
       setSubmitting(false)
       if (err) { setError(err); return }
       setSuccess('Akun berhasil dibuat!')
@@ -75,9 +79,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm flex flex-col gap-6">
         {/* Brand */}
         <div className="text-center">
-          <div className="w-14 h-14 bg-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-400/10">
-            <TrendingUp size={28} className="text-black stroke-[2.5]" />
-          </div>
+          <Image src="/finsight-logo.jpg" alt="Logo FinSight" width={56} height={56} className="w-14 h-14 rounded-2xl object-cover mx-auto mb-3 shadow-lg shadow-amber-400/10" priority />
           <h1 className="text-2xl font-black text-white tracking-wide">FinSight</h1>
           <p className="text-zinc-400 text-xs mt-1">Kelola keuangan pribadi dengan cerdas</p>
         </div>
@@ -122,6 +124,13 @@ export default function LoginPage() {
               </div>
 
               <div className="flex flex-col gap-3">
+                {tab === 'register' && (
+                  <input type="text" value={displayName} maxLength={40}
+                    onChange={e => setDisplayName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                    placeholder="Nama tampilan"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[#202026] border border-zinc-700/60 rounded-xl focus:border-amber-400 focus:outline-none text-white placeholder-zinc-500 transition-colors" />
+                )}
                 <input type="email" inputMode="email" value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}

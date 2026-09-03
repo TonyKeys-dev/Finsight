@@ -49,15 +49,11 @@ export default function DashboardPage() {
     <AppShell>
       <div className="p-5 md:p-8 max-w-4xl mx-auto flex flex-col gap-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div>
           <div>
             <h2 className="text-2xl font-black text-zinc-900 dark:text-white">Dashboard</h2>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm">{formatMonthLabel(month)}</p>
           </div>
-          <Link href="/transactions?modal=true"
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-sm px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
-            + Tambah
-          </Link>
         </div>
 
         {/* Summary Cards */}

@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { getTransactions, getMonthlySummary, getAvailableMonths } from '@/lib/actions'
+import { getSession } from '@/lib/auth'
 import { formatRupiah, formatMonthLabel, getCurrentMonth } from '@/lib/utils'
 import { CATEGORY_COLORS } from '@/types'
 import type { Transaction, MonthlySummary } from '@/types'
@@ -46,10 +47,16 @@ export default function RekapPage() {
   const handleAI = async () => {
     if (!summary) return
     setAiLoading(true); setAiResult(null)
+    const session = await getSession()
+    if (!session) {
+      setAiLoading(false)
+      setAiResult('Sesi kamu sudah berakhir. Silakan masuk kembali.')
+      return
+    }
     const res = await fetch('/api/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transactions, summary, month: formatMonthLabel(selectedMonth) })
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ month: selectedMonth })
     })
     const data = await res.json()
     setAiLoading(false)

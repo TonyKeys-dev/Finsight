@@ -36,26 +36,26 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-[#0a0a0c] flex items-center justify-center px-4 text-white">
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div className="text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <TrendingUp size={32} className="text-white" />
+          <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-400/10">
+            <TrendingUp size={32} className="text-black" />
           </div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Reset Password</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Masukkan password baru kamu</p>
+          <h1 className="text-2xl font-black text-white">Reset Password</h1>
+          <p className="text-zinc-400 text-sm mt-1">Masukkan password baru kamu</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 flex flex-col gap-4">
+        <div className="bg-[#141418] rounded-3xl shadow-lg border border-zinc-800 p-6 flex flex-col gap-4">
           {success ? (
             <div className="text-center py-4">
-              <p className="text-green-500 font-semibold">Password berhasil direset! 🎉</p>
-              <p className="text-gray-400 text-sm mt-1">Mengalihkan ke halaman login...</p>
+              <p className="text-emerald-400 font-semibold">Password berhasil direset! 🎉</p>
+              <p className="text-zinc-400 text-sm mt-1">Mengalihkan ke halaman login...</p>
             </div>
           ) : !ready ? (
             <div className="text-center py-4">
               <Loader2 size={24} className="animate-spin text-yellow-600 mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">Memverifikasi link reset...</p>
+              <p className="text-zinc-400 text-sm">Memverifikasi link reset...</p>
             </div>
           ) : (
             <>
@@ -65,9 +65,9 @@ export default function ResetPasswordPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Password baru (min. 6 karakter)"
-                  className="w-full px-4 py-3 pr-12 text-sm bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-blue-500 focus:outline-none dark:text-white transition-colors"
+                  className="w-full px-4 py-3 pr-12 text-sm bg-[#202026] border border-zinc-700/60 rounded-xl focus:border-amber-400 focus:outline-none text-white transition-colors"
                 />
-                <button onClick={() => setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <button onClick={() => setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">
                   {show ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -77,11 +77,11 @@ export default function ResetPasswordPage() {
                 onChange={e => setConfirm(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleReset()}
                 placeholder="Konfirmasi password baru"
-                className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-blue-500 focus:outline-none dark:text-white transition-colors"
+                className="w-full px-4 py-3 text-sm bg-[#202026] border border-zinc-700/60 rounded-xl focus:border-amber-400 focus:outline-none text-white transition-colors"
               />
               {error && <p className="text-red-500 text-sm text-center">{error}</p>}
               <button onClick={handleReset} disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                className="w-full bg-amber-400 hover:bg-amber-300 disabled:bg-zinc-700 disabled:text-zinc-400 text-black font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                 {loading ? <><Loader2 size={18} className="animate-spin" />Menyimpan...</> : 'Simpan Password Baru'}
               </button>
             </>
