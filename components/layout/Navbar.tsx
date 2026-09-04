@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ArrowLeftRight, BarChart2, LogOut } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, BarChart2, LogOut, Settings } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { InstallButton } from '@/components/pwa/InstallButton'
 import { signOut } from '@/lib/auth'
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
   { href: '/rekap', label: 'Rekap', icon: BarChart2 },
+  { href: '/pengaturan', label: 'Pengaturan', icon: Settings },
 ]
 
 export function Navbar({ email, displayName }: { email?: string; displayName?: string }) {

@@ -4,11 +4,11 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
-import { getTransactions, addTransaction, deleteTransaction } from '@/lib/actions'
+import { getTransactions, addTransaction, deleteTransaction, updateTransaction } from '@/lib/actions'
 import { formatRupiah, formatInputRupiah, parseRupiah, getCurrentMonth } from '@/lib/utils'
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types'
 import type { Transaction } from '@/types'
-import { Plus, Trash2, Loader2, X } from 'lucide-react'
+import { Plus, Trash2, Loader2, X, Pencil, Search } from 'lucide-react'
 
 function TransactionsContent() {
   const searchParams = useSearchParams()
@@ -17,6 +17,7 @@ function TransactionsContent() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [type, setType] = useState<'income' | 'expense'>('expense')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
@@ -24,8 +25,15 @@ function TransactionsContent() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+  const visibleTransactions = transactions.filter((transaction) => {
+    const term = query.trim().toLocaleLowerCase('id-ID')
+    const matchesQuery = !term || transaction.category.toLocaleLowerCase('id-ID').includes(term) || transaction.description?.toLocaleLowerCase('id-ID').includes(term)
+    return matchesQuery && (typeFilter === 'all' || transaction.type === typeFilter)
+  })
 
   const load = useCallback(async () => {
     const data = await getTransactions(getCurrentMonth())
@@ -43,9 +51,33 @@ function TransactionsContent() {
 
   const handleCloseModal = () => {
     setShowModal(false)
+    setEditingTransaction(null)
+    setError(null)
     if (searchParams.get('action') === 'add') {
       router.replace('/transactions')
     }
+  }
+
+  const openAddModal = () => {
+    setEditingTransaction(null)
+    setType('expense')
+    setAmount('')
+    setCategory('')
+    setDescription('')
+    setDate(new Date().toISOString().split('T')[0])
+    setError(null)
+    setShowModal(true)
+  }
+
+  const openEditModal = (transaction: Transaction) => {
+    setEditingTransaction(transaction)
+    setType(transaction.type)
+    setAmount(formatInputRupiah(String(transaction.amount)))
+    setCategory(transaction.category)
+    setDescription(transaction.description ?? '')
+    setDate(transaction.date)
+    setError(null)
+    setShowModal(true)
   }
 
   const handleSave = async () => {
@@ -53,7 +85,10 @@ function TransactionsContent() {
     if (!amt) { setError('Masukkan nominal yang valid.'); return }
     if (!category) { setError('Pilih kategori.'); return }
     setSaving(true); setError(null)
-    const { error: err } = await addTransaction({ type, amount: amt, category, description, date })
+    const payload = { type, amount: amt, category, description, date }
+    const { error: err } = editingTransaction
+      ? await updateTransaction(editingTransaction.id, payload)
+      : await addTransaction(payload)
     setSaving(false)
     if (err) { setError('Gagal menyimpan.'); return }
     handleCloseModal()
@@ -71,23 +106,41 @@ function TransactionsContent() {
     <div className="p-5 md:p-8 max-w-2xl mx-auto flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black text-zinc-900 dark:text-white">Transaksi</h2>
-        <button onClick={() => setShowModal(true)}
+        <button onClick={openAddModal}
           className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-sm px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
           <Plus size={16} /> Tambah
         </button>
       </div>
+
+      {!loading && transactions.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-2">
+          <label className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari kategori atau catatan..."
+              className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-white dark:bg-zinc-900 border border-yellow-200 dark:border-zinc-800 rounded-xl focus:border-yellow-400 focus:outline-none text-zinc-900 dark:text-white" />
+          </label>
+          <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as 'all' | 'income' | 'expense')}
+            className="px-3 py-2.5 text-sm bg-white dark:bg-zinc-900 border border-yellow-200 dark:border-zinc-800 rounded-xl focus:border-yellow-400 focus:outline-none text-zinc-900 dark:text-white">
+            <option value="all">Semua tipe</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+          </select>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 size={28} className="animate-spin text-yellow-500" /></div>
       ) : transactions.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl p-10 text-center border border-yellow-200/80 dark:border-zinc-800 shadow-sm">
           <p className="text-zinc-500 dark:text-zinc-400">Belum ada transaksi bulan ini.</p>
-          <button onClick={() => setShowModal(true)} className="mt-3 text-yellow-600 dark:text-yellow-400 text-sm font-semibold hover:underline">+ Tambah sekarang</button>
+          <button onClick={openAddModal} className="mt-3 text-yellow-600 dark:text-yellow-400 text-sm font-semibold hover:underline">+ Tambah sekarang</button>
         </div>
       ) : (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-yellow-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
-          <ul className="divide-y divide-yellow-100/50 dark:divide-zinc-800/80">
-            {transactions.map(tx => (
+          {visibleTransactions.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">Tidak ada transaksi yang cocok dengan pencarian atau filter.</p>
+          ) : <ul className="divide-y divide-yellow-100/50 dark:divide-zinc-800/80">
+            {visibleTransactions.map(tx => (
               <li key={tx.id} className="px-5 py-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${tx.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
@@ -101,13 +154,16 @@ function TransactionsContent() {
                   <p className={`text-sm font-bold ${tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
                     {tx.type === 'income' ? '+' : '-'}{formatRupiah(tx.amount)}
                   </p>
-                  <button onClick={() => handleDelete(tx.id)} className="text-zinc-300 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-500 transition-colors">
+                  <button onClick={() => openEditModal(tx)} aria-label={`Edit ${tx.category}`} className="text-zinc-300 hover:text-yellow-600 dark:text-zinc-600 dark:hover:text-yellow-400 transition-colors">
+                    <Pencil size={15} />
+                  </button>
+                  <button onClick={() => handleDelete(tx.id)} aria-label={`Hapus ${tx.category}`} className="text-zinc-300 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-500 transition-colors">
                     <Trash2 size={15} />
                   </button>
                 </div>
               </li>
             ))}
-          </ul>
+          </ul>}
         </div>
       )}
 
@@ -116,7 +172,7 @@ function TransactionsContent() {
         <div className="fixed inset-0 bg-black/60 dark:bg-black/80 z-50 flex items-end md:items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl border border-yellow-200/50 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-zinc-900 dark:text-white">Tambah Transaksi</h3>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-white">{editingTransaction ? 'Edit Transaksi' : 'Tambah Transaksi'}</h3>
               <button onClick={handleCloseModal} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
                 <X size={20} />
               </button>
@@ -161,7 +217,7 @@ function TransactionsContent() {
 
             <button onClick={handleSave} disabled={saving}
               className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-black font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-sm">
-              {saving ? <><Loader2 size={18} className="animate-spin text-black" />Menyimpan...</> : 'Simpan'}
+              {saving ? <><Loader2 size={18} className="animate-spin text-black" />Menyimpan...</> : editingTransaction ? 'Simpan Perubahan' : 'Simpan'}
             </button>
           </div>
         </div>

@@ -46,8 +46,17 @@ export async function deleteTransaction(id: string): Promise<{ error: string | n
   return { error: error?.message ?? null }
 }
 
-export async function updateTransaction(id: string, data: Partial<Transaction>): Promise<{ error: string | null }> {
-  const { error } = await supabase.from('transactions').update(data).eq('id', id)
+export async function updateTransaction(id: string, data: {
+  type: 'income' | 'expense'
+  amount: number
+  category: string
+  description?: string
+  date: string
+}): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('transactions').update({
+    ...data,
+    description: data.description || null,
+  }).eq('id', id)
   return { error: error?.message ?? null }
 }
 
