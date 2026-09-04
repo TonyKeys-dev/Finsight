@@ -25,6 +25,14 @@ export async function getProfile(userId: string) {
   return data?.display_name ?? null
 }
 
+export async function updateDisplayName(userId: string, displayName: string) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: displayName })
+    .eq('id', userId)
+  return { error: error?.message ?? null }
+}
+
 export async function signOut() {
   await supabase.auth.signOut()
 }

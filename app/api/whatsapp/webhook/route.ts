@@ -11,7 +11,8 @@ function config() {
   const token = process.env.WHATSAPP_ACCESS_TOKEN
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
   const graphVersion = process.env.WHATSAPP_GRAPH_API_VERSION
-  if (!token || !phoneNumberId || !graphVersion) throw new Error('WhatsApp belum dikonfigurasi.')
+  const missing = [!token && 'WHATSAPP_ACCESS_TOKEN', !phoneNumberId && 'WHATSAPP_PHONE_NUMBER_ID', !graphVersion && 'WHATSAPP_GRAPH_API_VERSION'].filter(Boolean)
+  if (missing.length) throw new Error(`WhatsApp belum dikonfigurasi: ${missing.join(', ')}`)
   return { token, phoneNumberId, graphVersion }
 }
 
@@ -29,7 +30,7 @@ async function sendText(to: string, body: string) {
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body } }),
   })
-  if (!response.ok) throw new Error(`WhatsApp send failed: ${response.status}`)
+  if (!response.ok) throw new Error(`WhatsApp send failed: ${response.status} ${await response.text()}`)
 }
 
 async function handleMessage(message: IncomingMessage) {
@@ -102,7 +103,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text()
-  if (!validSignature(rawBody, request.headers.get('x-hub-signature-256'))) return new NextResponse('Invalid signature', { status: 401 })
+  if (!validSignature(rawBody, request.headers.get('x-hub-signature-256'))) {
+    console.warn('WhatsApp webhook rejected: signature tidak valid atau WHATSAPP_APP_SECRET belum disetel.')
+    return new NextResponse('Invalid signature', { status: 401 })
+  }
   try {
     const body = JSON.parse(rawBody) as { entry?: { changes?: { value?: { messages?: IncomingMessage[] } }[] }[] }
     const messages = body.entry?.flatMap((entry) => entry.changes?.flatMap((change) => change.value?.messages ?? []) ?? []) ?? []

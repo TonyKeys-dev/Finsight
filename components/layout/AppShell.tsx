@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getProfile, getSession } from '@/lib/auth'
 import { Navbar } from './Navbar'
@@ -11,8 +11,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string | undefined>()
   const [displayName, setDisplayName] = useState<string | undefined>()
 
-  useEffect(() => {
-    getSession().then(async (session) => {
+  const loadUser = useCallback(() => {
+    return getSession().then(async (session) => {
       if (!session) { router.replace('/login'); return }
       setEmail(session.user.email ?? undefined)
       const name = await getProfile(session.user.id)
@@ -20,6 +20,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setReady(true)
     })
   }, [router])
+
+  useEffect(() => {
+    void loadUser()
+    window.addEventListener('finsight-profile-updated', loadUser)
+    return () => window.removeEventListener('finsight-profile-updated', loadUser)
+  }, [loadUser])
 
   if (!ready) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
