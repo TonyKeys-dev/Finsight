@@ -20,6 +20,10 @@ function validSignature(body: string, signature: string | null) {
   const secret = process.env.WHATSAPP_APP_SECRET
   if (!secret || !signature?.startsWith('sha256=')) return false
   const expected = `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`
+  console.log('Signature dari Meta:', signature)
+  console.log('Signature expected:', expected)
+  console.log('Match?', expected === signature)
+  
   return expected.length === signature.length && timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
 }
 
